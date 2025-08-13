@@ -1,37 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}История продаж{% endblock %}
 {% block content %}
-<<<<<<< Updated upstream
-<h1>История продаж</h1>
-<p>Общая прибыль: {{ total_profit }}</p>
-<table class="table" id="salesTable">
-    <thead id="salesThead">
-        <tr>
-            <th data-sort="text">Товар <i class="fa-solid fa-sort"></i></th>
-            <th data-sort="num">Количество <i class="fa-solid fa-sort"></i></th>
-            <th data-sort="num">Цена <i class="fa-solid fa-sort"></i></th>
-            <th data-sort="num">Прибыль <i class="fa-solid fa-sort"></i></th>
-            <th data-sort="text">Дата <i class="fa-solid fa-sort"></i></th>
-            <th>Действия</th>
-        </tr>
-    </thead>
-    <tbody id="salesTbody">
-        {% for sale in sales_history %}
-        <tr>
-            <td>{{ sale.name }}</td>
-            <td>{{ sale.quantity_sold }}</td>
-            <td>{{ sale.retail_price }}</td>
-            <td>{{ sale.profit }}</td>
-            <td>{{ sale.timestamp }}</td>
-            <td>
-                <a href="{{ url_for('edit_sale', sale_id=sale.id) }}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen"></i></a>
-                <a href="{{ url_for('delete_sale', sale_id=sale.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить товар?')"><i class="fa-solid fa-trash"></i></a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-=======
+
 
 
 <div id="Sales-container">
@@ -395,3 +365,4 @@
 });
 </script>
 {% endblock %}
+
