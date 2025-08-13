@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Редактировать продажу{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h4 class="card-title mb-3"><i class="fa-solid fa-pen me-2 text-primary"></i>Редактировать продажу</h4>
+      <form method="post" action="{{ url_for('edit_sale', sale_id=sale_id) }}" id="editSaleForm">
+        <div class="mb-3">
+          <label class="form-label">Товар</label>
+          <input type="text" class="form-control" value="{{ name }}" disabled>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Количество продано</label>
+          <input type="number" name="quantity_sold" class="form-control" value="{{ sale.quantity_sold }}" min="1" max="{{ max_quantity }}" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Розничная цена</label>
+          <input type="number" name="retail_price" class="form-control" value="{{ sale.retail_price }}" step="0.01" min="0" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Дата</label>
+          <input type="text" class="form-control" value="{{ sale.timestamp }}" disabled>
+        </div>
+        <button type="submit" class="btn btn-success" id="saveSaleButton"><i class="fa-solid fa-check me-1"></i> Сохранить</button>
+        <a href="{{ url_for('history') }}" class="btn btn-outline-secondary">Отмена</a>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('editSaleForm').addEventListener('submit', function() {
+  document.getElementById('saveSaleButton').disabled = true;
+});
+</script>
+{% endblock %}
