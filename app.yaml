@@ -1,0 +1,8 @@
+runtime: python39
+
+env_variables:
+  GCS_BUCKET_NAME: crmalikh
+
+handlers:
+- url: /.*
+  script: auto

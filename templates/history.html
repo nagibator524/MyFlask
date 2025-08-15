@@ -1,0 +1,448 @@
+{% extends 'base.html' %}
+{% block title %}История продаж{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="mb-0">
+        <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>История продаж
+      </h2>
+      <div class="d-flex align-items-center bg-white rounded-pill px-3 py-2 shadow-sm">
+        <i class="fa-solid fa-coins text-warning me-2"></i>
+        <span class="fw-bold">Общая прибыль: <span class="text-success">{{ total_profit }}</span></span>
+      </div>
+    </div>
+    
+    <div class="card shadow-lg mb-5 fade-in">
+      <div class="card-header bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="fa-solid fa-receipt text-info me-2"></i>История операций
+          </h5>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table" id="salesTable">
+            <thead>
+              <tr>
+                <th data-sort="text">Товар <i class="fa-solid fa-sort"></i></th>
+                <th data-sort="num">Количество <i class="fa-solid fa-sort"></i></th>
+                <th data-sort="num">Цена <i class="fa-solid fa-sort"></i></th>
+                <th data-sort="num">Прибыль <i class="fa-solid fa-sort"></i></th>
+                <th data-sort="text">Дата <i class="fa-solid fa-sort"></i></th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="salesTbody">
+              {% for sale in sales_history %}
+              <tr>
+                <td>{{ sale.name }}</td>
+                <td>{{ sale.quantity_sold }}</td>
+                <td>{{ sale.retail_price }}</td>
+                <td class="text-success fw-bold">{{ sale.profit }}</td>
+                <td>{{ sale.timestamp }}</td>
+                <td>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <a href="{{ url_for('edit_sale', sale_id=sale.id) }}" class="btn btn-outline-primary" title="Редактировать">
+                      <i class="fa-solid fa-pen"></i>
+                    </a>
+                    <a href="{{ url_for('delete_sale', sale_id=sale.id) }}" class="btn btn-outline-danger" onclick="return confirm('Удалить продажу?')" title="Удалить">
+                      <i class="fa-solid fa-trash"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="mb-0">
+        <i class="fa-solid fa-warehouse text-secondary me-2"></i>Текущий склад
+      </h3>
+      <button class="btn btn-outline-primary" id="sortByPhotoBtn">
+        <i class="fa-solid fa-camera me-1"></i> Сортировать по фото
+      </button>
+    </div>
+    
+    <div class="card shadow-lg fade-in">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle" id="itemsTable">
+            <thead id="itemsThead">
+              <tr>
+                <th><i class="fa-solid fa-camera"></i> Фото</th>
+                <th data-sort="text">Название <i class="fa-solid fa-sort"></i></th>
+                <th data-sort="num">Кол-во <i class="fa-solid fa-sort"></i></th>
+                <th data-sort="num">Опт <i class="fa-solid fa-sort"></i></th>
+                <th data-sort="num">Розница <i class="fa-solid fa-sort"></i></th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="itemsTbody">
+              {% for item in database %}
+              <tr data-id="{{ item.id }}" class="fade-in">
+                <td>
+                  <img src="{{ url_for('serve_image', filename=item.filename) }}" 
+                       alt="{{ item.name }}" 
+                       style="height:56px; width:56px; object-fit:cover;" 
+                       class="rounded shadow-sm">
+                </td>
+                <td class="item-name fw-medium">{{ item.name }}</td>
+                <td class="item-qty">
+                  {% if item.quantity <= 5 %}
+                    <span class="badge bg-danger">{{ item.quantity }}</span>
+                  {% elif item.quantity <= 10 %}
+                    <span class="badge bg-warning text-dark">{{ item.quantity }}</span>
+                  {% else %}
+                    <span class="badge bg-success">{{ item.quantity }}</span>
+                  {% endif %}
+                </td>
+                <td class="item-wholesale">{{ item.wholesale_price }}</td>
+                <td class="item-retail fw-bold">{{ item.retail_price }}</td>
+                <td>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn btn-outline-primary" title="Редактировать">
+                      <i class="fa-solid fa-pen"></i>
+                    </a>
+                    <a href="{{ url_for('delete_item', item_id=item.id) }}" class="btn btn-outline-danger" onclick="return confirm('Удалить товар?')" title="Удалить">
+                      <i class="fa-solid fa-trash"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="photoModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fa-solid fa-camera me-2"></i>Сделать фото или загрузить
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex gap-2 mb-3">
+          <button id="switchCamBtn" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-sync me-1"></i>Переключить камеру
+          </button>
+          <input type="file" id="uploadPhoto" accept="image/*" class="form-control form-control-sm" />
+        </div>
+        <div class="d-flex flex-column flex-md-row gap-4">
+          <div class="flex-grow-1">
+            <video id="modalVideo" autoplay playsinline class="w-100 rounded border" style="background:#000; aspect-ratio: 4/3;"></video>
+            <div class="mt-3 text-center">
+              <button id="takePhoto" class="btn btn-primary">
+                <i class="fa-solid fa-camera me-1"></i>Сделать фото
+              </button>
+            </div>
+          </div>
+          <div class="flex-grow-1">
+            <canvas id="modalCanvas" width="420" height="315" class="d-none"></canvas>
+            <div class="text-center">
+              <img id="modalPreview" src="#" class="img-fluid rounded shadow-sm d-none" style="max-height:300px; aspect-ratio: 4/3; object-fit:cover;">
+              <div id="previewPlaceholder" class="d-flex align-items-center justify-content-center rounded border" style="height:225px; background-color:var(--gray-100);">
+                <div class="text-center text-muted">
+                  <i class="fa-solid fa-image fa-2x mb-2"></i>
+                  <p class="mb-0">Предпросмотр</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-4 text-center">
+          <button id="submitSort" class="btn btn-success btn-lg px-4">
+            <i class="fa-solid fa-magnifying-glass me-1"></i>Отправить и отсортировать
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  th[data-sort] {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+  }
+  th[data-sort]:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    function bindSortEventListeners() {
+      document.querySelectorAll('#salesTable thead th[data-sort]').forEach(th => {
+        const icon = th.querySelector('i');
+        th.addEventListener('click', () => {
+          const type = th.dataset.sort;
+          const index = Array.from(th.parentNode.children).indexOf(th);
+          const tbody = document.querySelector('#salesTbody');
+          const rows = Array.from(tbody.querySelectorAll('tr'));
+          const asc = !th.classList.contains('asc');
+
+          rows.sort((a, b) => {
+            let aText = a.children[index].textContent.trim();
+            let bText = b.children[index].textContent.trim();
+            if (type === 'num') {
+              return asc ? parseFloat(aText) - parseFloat(bText) : parseFloat(bText) - parseFloat(aText);
+            } else {
+              return asc ? aText.localeCompare(bText) : bText.localeCompare(aText);
+            }
+          });
+
+          tbody.innerHTML = '';
+          rows.forEach(r => tbody.appendChild(r));
+
+          document.querySelectorAll('#salesTable thead th').forEach(h => {
+            h.classList.remove('asc', 'desc');
+            const i = h.querySelector('i');
+            if (i) i.className = 'fa-solid fa-sort';
+          });
+
+          th.classList.add(asc ? 'asc' : 'desc');
+          icon.className = asc ? 'fa-solid fa-sort-up' : 'fa-solid fa-sort-down';
+        });
+      });
+    }
+
+    bindSortEventListeners();
+  });
+  
+  let stream = null;
+  let usingFacing = 'environment';
+  const video = document.getElementById('modalVideo');
+  const canvas = document.getElementById('modalCanvas');
+  const preview = document.getElementById('modalPreview');
+  const previewPlaceholder = document.getElementById('previewPlaceholder');
+  let originalTheadHtml = '';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Сохраняем оригинальный HTML-код заголовка таблицы
+    originalTheadHtml = document.getElementById('itemsThead').innerHTML;
+    // Привязываем обработчики событий при загрузке страницы
+    bindSortEventListeners();
+  });
+
+  // ---------- CAMERA ----------
+  async function startStream() {
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: usingFacing }, audio: false });
+      video.srcObject = stream;
+    } catch (e) {
+      console.error(e);
+      alert('Не удалось получить доступ к камере: ' + e.message);
+    }
+  }
+
+  document.getElementById('sortByPhotoBtn').addEventListener('click', () => {
+    preview.classList.add('d-none');
+    previewPlaceholder.classList.remove('d-none');
+    document.getElementById('uploadPhoto').value = '';
+    var modal = new bootstrap.Modal(document.getElementById('photoModal'));
+    modal.show();
+    startStream();
+  });
+
+  document.getElementById('switchCamBtn').addEventListener('click', () => {
+    usingFacing = usingFacing === 'environment' ? 'user' : 'environment';
+    startStream();
+  });
+
+  document.getElementById('takePhoto').addEventListener('click', () => {
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((b) => {
+      const url = URL.createObjectURL(b);
+      preview.src = url;
+      preview.classList.remove('d-none');
+      previewPlaceholder.classList.add('d-none');
+      preview._blob = b;
+    }, 'image/jpeg', 0.9);
+  });
+
+  document.getElementById('uploadPhoto').addEventListener('change', (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const url = URL.createObjectURL(f);
+    preview.src = url;
+    preview.classList.remove('d-none');
+    previewPlaceholder.classList.add('d-none');
+    preview._blob = f;
+  });
+
+  document.getElementById('submitSort').addEventListener('click', async () => {
+    const b = preview._blob;
+    if (!b) {
+      alert('Сначала сделайте фото или загрузите файл.');
+      return;
+    }
+    const fd = new FormData();
+    fd.append('image', b, 'photo.jpg');
+    const submitBtn = document.getElementById('submitSort');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Обработка...';
+
+    const resp = await fetch('/sort_by_image', { method: 'POST', body: fd });
+    const data = await resp.json();
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass me-1"></i>Отправить и отсортировать';
+
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+
+    updateTable(data.results);
+    bootstrap.Modal.getInstance(document.getElementById('photoModal')).hide();
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+  });
+
+  // ---------- CLIENT SORT ----------
+  function bindSortEventListeners() {
+    document.querySelectorAll('#itemsTable thead th[data-sort]').forEach(th => {
+      const icon = th.querySelector('i');
+      th.addEventListener('click', () => {
+        const type = th.dataset.sort;
+        const index = Array.from(th.parentNode.children).indexOf(th);
+        const tbody = document.querySelector('#itemsTbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const asc = !th.classList.contains('asc');
+
+        rows.sort((a, b) => {
+          let aText = a.children[index].textContent.trim();
+          let bText = b.children[index].textContent.trim();
+          if (type === 'num') {
+            return asc ? parseFloat(aText) - parseFloat(bText) : parseFloat(bText) - parseFloat(aText);
+          } else {
+            return asc ? aText.localeCompare(bText) : bText.localeCompare(aText);
+          }
+        });
+
+        tbody.innerHTML = '';
+        rows.forEach(r => tbody.appendChild(r));
+
+        document.querySelectorAll('#itemsTable thead th').forEach(h => {
+          h.classList.remove('asc', 'desc');
+          const i = h.querySelector('i');
+          if (i) i.className = 'fa-solid fa-sort';
+        });
+
+        th.classList.add(asc ? 'asc' : 'desc');
+        icon.className = asc ? 'fa-solid fa-sort-up' : 'fa-solid fa-sort-down';
+      });
+    });
+  }
+
+  function updateTable(items) {
+    const tbody = document.getElementById('itemsTbody');
+    tbody.innerHTML = '';
+    for (const it of items) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><img src="/images/${it.filename}" style="height:56px; width:56px; object-fit:cover;" class="rounded shadow-sm"></td>
+        <td>${it.score.toFixed(2)}</td>
+        <td class="item-name fw-medium">${it.name}</td>
+        <td class="item-qty">
+          ${it.quantity <= 5 ? 
+            '<span class="badge bg-danger">' + it.quantity + '</span>' : 
+            (it.quantity <= 10 ? 
+              '<span class="badge bg-warning text-dark">' + it.quantity + '</span>' : 
+              '<span class="badge bg-success">' + it.quantity + '</span>')}
+        </td>
+        <td class="item-wholesale">${it.wholesale_price}</td>
+        <td class="item-retail fw-bold">${it.retail_price}</td>
+        <td>
+          <div class="btn-group btn-group-sm" role="group">
+            <a href="/edit_item/${it.id}" class="btn btn-outline-primary" title="Редактировать">
+              <i class="fa-solid fa-pen"></i>
+            </a>
+            <a href="/delete_item/${it.id}" class="btn btn-outline-danger" onclick="return confirm('Удалить товар?')" title="Удалить">
+              <i class="fa-solid fa-trash"></i>
+            </a>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+    const thead = document.getElementById('itemsThead');
+    thead.innerHTML = `
+      <tr>
+        <th><i class="fa-solid fa-camera"></i> Фото</th>
+        <th data-sort="num">Схожесть <i class="fa-solid fa-sort"></i></th>
+        <th data-sort="text">Название <i class="fa-solid fa-sort"></i></th>
+        <th data-sort="num">Кол-во <i class="fa-solid fa-sort"></i></th>
+        <th data-sort="num">Опт <i class="fa-solid fa-sort"></i></th>
+        <th data-sort="num">Розница <i class="fa-solid fa-sort"></i></th>
+        <th>Действия</th>
+      </tr>
+    `;
+    // После перезаписи thead, заново привязываем обработчики событий
+    bindSortEventListeners();
+  }
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    function bindSortEventListeners() {
+      document.querySelectorAll('#salesTable thead th[data-sort]').forEach(th => {
+        const icon = th.querySelector('i');
+        th.addEventListener('click', () => {
+          const type = th.dataset.sort;
+          const index = Array.from(th.parentNode.children).indexOf(th);
+          const tbody = document.querySelector('#salesTbody');
+          const rows = Array.from(tbody.querySelectorAll('tr'));
+          const asc = !th.classList.contains('asc');
+
+          rows.sort((a, b) => {
+            let aText = a.children[index].textContent.trim();
+            let bText = b.children[index].textContent.trim();
+            if (type === 'num') {
+              return asc ? parseFloat(aText) - parseFloat(bText) : parseFloat(bText) - parseFloat(aText);
+            } else {
+              return asc ? aText.localeCompare(bText) : bText.localeCompare(aText);
+            }
+          });
+
+          tbody.innerHTML = '';
+          rows.forEach(r => tbody.appendChild(r));
+
+          document.querySelectorAll('#salesTable thead th').forEach(h => {
+            h.classList.remove('asc', 'desc');
+            const i = h.querySelector('i');
+            if (i) i.className = 'fa-solid fa-sort';
+          });
+
+          th.classList.add(asc ? 'asc' : 'desc');
+          icon.className = asc ? 'fa-solid fa-sort-up' : 'fa-solid fa-sort-down';
+        });
+      });
+    }
+
+    bindSortEventListeners();
+  });
+</script>
+{% endblock %}
+
