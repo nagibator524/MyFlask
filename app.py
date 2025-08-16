@@ -27,7 +27,7 @@ app = Flask(__name__)
 app.secret_key = 'super_secret_key'  # Необходим для сессий и flash-сообщений
 
 # --- Google Cloud Storage Configuration ---
-GCS_BUCKET_NAME = os.getenv('GCS_BUCKET_NAME', 'your-bucket-name')  # Set your bucket name
+GCS_BUCKET_NAME = os.getenv('GCS_BUCKET_NAME', 'crmalikh')  # Set your bucket name
 GCS_DATABASE_NAME = 'app.db'
 
 # Initialize Google Cloud Storage client
