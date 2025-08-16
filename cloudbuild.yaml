@@ -19,6 +19,7 @@ steps:
       - '--region=us-central1'
       - '--allow-unauthenticated'
       - '--set-env-vars=GCS_BUCKET_NAME=$_GCS_BUCKET_NAME'
+      - '--max-instances=29'
 
 # Set environment variables
 substitutions:
